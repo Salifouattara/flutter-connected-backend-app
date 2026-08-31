@@ -25,7 +25,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
             Expanded(child: Text('⚠️ Mode hors-ligne : Affichage des données en cache', style: TextStyle(fontWeight: FontWeight.w600))),
           ]),
         ),
-      Expanded(child: state.loading && state.users.isEmpty ? const Center(child: CircularProgressIndicator()) : state.error != null ? Center(child: Text(state.error!)) : RefreshIndicator(onRefresh: state.load, child: ListView.builder(physics: const AlwaysScrollableScrollPhysics(), itemCount: state.users.length, itemBuilder: (_, i) { final user = state.users[i]; return ListTile(leading: CircleAvatar(backgroundImage: user.image.isEmpty ? null : NetworkImage(user.image), child: user.image.isEmpty ? Text(user.firstName.substring(0, 1)) : null), title: Text(user.fullName), subtitle: Text(user.email), onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => ProfileScreen(user: user)))); })))
+      Expanded(child: state.loading && state.users.isEmpty ? const Center(child: CircularProgressIndicator()) : state.error != null ? Center(child: Text(state.error!)) : state.empty ? const Center(child: Text('Aucun utilisateur disponible.')) : RefreshIndicator(onRefresh: state.load, child: ListView.builder(physics: const AlwaysScrollableScrollPhysics(), itemCount: state.users.length, itemBuilder: (_, i) { final user = state.users[i]; return ListTile(leading: CircleAvatar(backgroundImage: user.image.isEmpty ? null : NetworkImage(user.image), child: user.image.isEmpty ? Text(user.firstName.substring(0, 1)) : null), title: Text(user.fullName), subtitle: Text(user.email), onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => ProfileScreen(user: user)))); })))
     ]));
   }
 }

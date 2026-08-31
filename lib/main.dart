@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:provider/provider.dart';
 import 'core/di/app_dependencies.dart';
+import 'domain/repositories/user_repository.dart';
 import 'presentation/controllers/auth_controller.dart';
 import 'presentation/controllers/users_controller.dart';
 import 'presentation/screens/auth_screen.dart';
@@ -17,6 +18,6 @@ class App extends StatelessWidget {
   final AppDependencies dependencies;
   @override Widget build(BuildContext context) {
     final auth = dependencies.authRepository;
-    return MultiProvider(providers: [ChangeNotifierProvider(create: (_) => AuthController(auth)), ChangeNotifierProvider(create: (_) => UsersController(dependencies.userRepository))], child: MaterialApp(debugShowCheckedModeBanner: false, theme: ThemeData(colorSchemeSeed: Colors.indigo, useMaterial3: true), home: auth.isAuthenticated ? const DashboardScreen() : const AuthScreen()));
+    return MultiProvider(providers: [Provider<UserRepository>.value(value: dependencies.userRepository), ChangeNotifierProvider(create: (_) => AuthController(auth)), ChangeNotifierProvider(create: (_) => UsersController(dependencies.userRepository))], child: MaterialApp(debugShowCheckedModeBanner: false, theme: ThemeData(colorSchemeSeed: Colors.indigo, useMaterial3: true), home: auth.isAuthenticated ? const DashboardScreen() : const AuthScreen()));
   }
 }

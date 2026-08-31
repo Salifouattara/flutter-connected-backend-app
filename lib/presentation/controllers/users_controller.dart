@@ -9,6 +9,7 @@ class UsersController extends ChangeNotifier {
   List<User> users = [];
   bool loading = false;
   bool offline = false;
+  bool empty = false;
   String? error;
 
   Future<void> load() async {
@@ -19,10 +20,13 @@ class UsersController extends ChangeNotifier {
       final result = await _repository.getUsers();
       users = result.data;
       offline = result.isFromCache;
+      empty = users.isEmpty;
     } on AppException catch (e) {
       error = e.message;
+      empty = false;
     } catch (_) {
       error = 'Une erreur inattendue est survenue.';
+      empty = false;
     } finally {
       loading = false;
       notifyListeners();

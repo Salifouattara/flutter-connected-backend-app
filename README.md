@@ -19,6 +19,10 @@ Le projet isole les responsabilités pour que l'interface reste indépendante de
 
 L'implémentation utilise [DummyJSON](https://dummyjson.com/docs) : `POST /auth/login`, `POST /auth/refresh`, `POST /users/add` et `GET /users`. Utilisez `emilys` / `emilyspass` pour la démonstration. Après le login, `accessToken` et `refreshToken` sont stockés dans Hive. `AuthInterceptor` ajoute `Authorization: Bearer <token>` aux routes sécurisées. Face à une réponse 401, il renouvelle une seule fois le jeton, sauvegarde les nouveaux jetons et rejoue la requête ; si cela échoue, il efface la session.
 
+## Écrans API
+
+L'application comporte trois parcours visibles : l'écran d'authentification, le tableau de bord alimenté par `GET /users` avec pull-to-refresh et bannière hors-ligne, puis le profil. Le profil recharge explicitement `GET /users/{id}` via le repository avant d'afficher les coordonnées de l'utilisateur.
+
 ## Démarrage
 
 ```bash

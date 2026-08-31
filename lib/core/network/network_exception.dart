@@ -17,6 +17,11 @@ class CacheException extends AppException {
   const CacheException(super.message);
 }
 
+/// Authentication refresh failures, so network code never exposes StateError.
+class RefreshTokenException extends AppException {
+  const RefreshTokenException(super.message);
+}
+
 /// Connectivity and timeout failures, distinct from server responses.
 class NetworkException extends AppException {
   const NetworkException(super.message);
