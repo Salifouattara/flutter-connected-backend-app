@@ -38,9 +38,18 @@ void main() {
     verify(() => remote.register('Ada', 'ada@test.dev', 'secret')).called(1);
   });
 
-  test('logout efface complètement la session locale', () async {
-    when(storage.clearSession).thenAnswer((_) async {});
+  test('logout efface la session et le repository devient déconnecté', () async {
+    var isLoggedIn = true;
+    when(() => storage.token).thenAnswer((_) => isLoggedIn ? 'access-token' : null);
+    when(() => storage.clearSession()).thenAnswer((_) async { isLoggedIn = false; });
     await repository.logout();
-    verify(storage.clearSession).called(1);
+    verify(() => storage.clearSession()).called(1);
+    expect(repository.isAuthenticated, isFalse);
+  });
+
+  test('logout propage une erreur de stockage', () async {
+    when(() => storage.clearSession()).thenThrow(StateError('Hive indisponible'));
+    expect(() => repository.logout(), throwsA(isA<StateError>()));
+    verify(() => storage.clearSession()).called(1);
   });
 }

@@ -29,7 +29,9 @@ void main() {
     final result = await repository.getUsers();
     expect(result.data.single.email, 'ada@test.dev');
     expect(result.isFromCache, isFalse);
+    verify(() => remote.getUsers()).called(1);
     verify(() => local.cacheUsers(users)).called(1);
+    verifyNever(() => local.getCachedUsers());
   });
 
   test('bascule sur le cache si le réseau échoue', () async {
@@ -38,11 +40,16 @@ void main() {
     final result = await repository.getUsers();
     expect(result.isFromCache, isTrue);
     expect(result.data, users);
+    verify(() => remote.getUsers()).called(1);
+    verify(() => local.getCachedUsers()).called(1);
+    verifyNever(() => local.cacheUsers(any()));
   });
 
   test('renvoie une erreur utilisateur si réseau et cache échouent', () async {
     when(() => remote.getUsers()).thenThrow(connectionError());
     when(() => local.getCachedUsers()).thenThrow(StateError('cache vide'));
     expect(repository.getUsers(), throwsA(isA<NetworkException>()));
+    verify(() => remote.getUsers()).called(1);
+    verify(() => local.getCachedUsers()).called(1);
   });
 }
