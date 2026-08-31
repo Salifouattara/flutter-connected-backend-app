@@ -6,13 +6,23 @@ class AppStorage {
   final Box<dynamic> _box;
 
   static const _tokenKey = 'auth_token';
+  static const _refreshTokenKey = 'refresh_token';
   static const _profileKey = 'profile';
   static const _usersKey = 'cached_users';
 
   String? get token => _box.get(_tokenKey) as String?;
+  String? get refreshToken => _box.get(_refreshTokenKey) as String?;
   Future<void> saveToken(String token) => _box.put(_tokenKey, token);
+  Future<void> saveRefreshToken(String token) => _box.put(_refreshTokenKey, token);
+  Future<void> saveTokens({required String accessToken, String? refreshToken}) async {
+    await saveToken(accessToken);
+    if (refreshToken != null && refreshToken.isNotEmpty) {
+      await saveRefreshToken(refreshToken);
+    }
+  }
   Future<void> clearSession() async {
     await _box.delete(_tokenKey);
+    await _box.delete(_refreshTokenKey);
     await _box.delete(_profileKey);
   }
 

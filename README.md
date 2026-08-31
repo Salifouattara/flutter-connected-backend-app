@@ -1,37 +1,33 @@
 # Flutter Connected
 
-Application Flutter de démonstration prête pour une soutenance : authentification JWT, API REST, cache local et repli hors-ligne.
+[![Flutter quality gate](https://github.com/OWNER/flutter_connected/actions/workflows/flutter_test.yml/badge.svg)](https://github.com/OWNER/flutter_connected/actions/workflows/flutter_test.yml)
 
-## Architecture
+Application Flutter pensée pour un contexte de certification : authentification JWT, API REST réelle, cache local persistant, repli hors-ligne et tests automatisés.
 
-- `lib/core` : Dio, interceptor JWT, conversion centralisée des erreurs et persistance Hive.
-- `lib/domain` : entités et contrats de repositories, sans dépendance à Flutter/Dio.
-- `lib/data` : modèles JSON, sources distante/locale et implémentations des repositories.
-- `lib/presentation` : contrôleurs `ChangeNotifier` et trois écrans : authentification, liste, détail.
+## Architecture Clean
 
-Le repository des utilisateurs tente l'API, écrit le résultat dans Hive, puis retourne automatiquement le cache en cas d'échec réseau. L'écran affiche alors une bannière « mode hors-ligne ».
+Le projet isole les responsabilités pour que l'interface reste indépendante de la source des données :
 
-## API et JWT
+- `lib/core` contient Dio, l'intercepteur JWT/refresh token, Hive et les exceptions applicatives typées (`NetworkException`, `ServerException`, `CacheException`).
+- `lib/domain` définit les entités métier et les contrats de repositories, sans dépendre de Flutter ou Dio.
+- `lib/data` regroupe les DTO/modèles, les sources distantes/locales et les implémentations des repositories.
+- `lib/presentation` contient les contrôleurs `ChangeNotifier` et les écrans Login/Register, tableau de bord et profil.
 
-Le projet utilise [DummyJSON](https://dummyjson.com/docs). `POST /auth/login` retourne un `accessToken` JWT. `AuthInterceptor` l'ajoute uniquement aux requêtes signalées comme sécurisées, sous la forme `Authorization: Bearer <token>`.
+`UserRepositoryImpl` charge l'API puis écrit dans Hive. Lorsqu'une requête réseau échoue, il retourne le dernier cache disponible et le tableau de bord signale explicitement le mode hors-ligne. Les erreurs transport, serveur et cache sont converties en exceptions typées, puis en messages adaptés à l'utilisateur, sans comparaison de chaînes dans les contrôleurs.
 
-Identifiants de test : `emilys` / `emilyspass`.
+## API, JWT et refresh token
 
-L'inscription appelle `POST /users/add`, une simulation offerte par DummyJSON ; reconnectez-vous ensuite avec le compte de test. Pour un backend/Supabase réel, remplacez `ApiConfig.baseUrl` et les méthodes dans `AuthRemoteDataSource`, sans modifier les écrans ni les repositories.
+L'implémentation utilise [DummyJSON](https://dummyjson.com/docs) : `POST /auth/login`, `POST /auth/refresh`, `POST /users/add` et `GET /users`. Utilisez `emilys` / `emilyspass` pour la démonstration. Après le login, `accessToken` et `refreshToken` sont stockés dans Hive. `AuthInterceptor` ajoute `Authorization: Bearer <token>` aux routes sécurisées. Face à une réponse 401, il renouvelle une seule fois le jeton, sauvegarde les nouveaux jetons et rejoue la requête ; si cela échoue, il efface la session.
 
-## Installation
+## Démarrage
 
 ```bash
 flutter pub get
-# Nécessaire une seule fois si les hôtes Android/iOS ne sont pas encore présents
+# Une seule fois si les hôtes Android/iOS sont absents
 flutter create --platforms=android,ios .
 flutter run
 ```
 
-## Tests
+## Qualité et CI
 
-```bash
-flutter test
-```
-
-Les tests de repository couvrent le succès distant/cache, le repli cache et l'échec combiné réseau/cache.
+Les trois suites dans `test/` couvrent le repository utilisateur (API/cache/hors-ligne), le repository d'authentification (login/register/logout) et le mapping des erreurs réseau. GitHub Actions exécute `flutter analyze` et `flutter test` à chaque push et pull request via `.github/workflows/flutter_test.yml`.

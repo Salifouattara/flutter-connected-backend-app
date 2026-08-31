@@ -1,4 +1,5 @@
 import 'package:flutter/foundation.dart';
+import '../../core/network/network_exception.dart';
 import '../../domain/repositories/auth_repository.dart';
 
 class AuthController extends ChangeNotifier {
@@ -20,8 +21,11 @@ class AuthController extends ChangeNotifier {
     try {
       await action();
       return true;
-    } catch (e) {
-      error = e.toString().replaceFirst('NetworkException: ', '');
+    } on AppException catch (e) {
+      error = e.message;
+      return false;
+    } catch (_) {
+      error = 'Une erreur inattendue est survenue.';
       return false;
     } finally {
       loading = false;
@@ -29,8 +33,6 @@ class AuthController extends ChangeNotifier {
     }
   }
 
-  Future<void> logout() async {
-    await _repository.logout();
-    notifyListeners();
-  }
+  /// Keeps loading/error state consistent with login and registration.
+  Future<bool> logout() => _run(() => _repository.logout());
 }

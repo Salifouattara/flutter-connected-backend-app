@@ -1,11 +1,27 @@
 import 'package:dio/dio.dart';
 
-/// Message safe to display to end users; technical details stay out of the UI.
-class NetworkException implements Exception {
-  const NetworkException(this.message);
+/// Base exception exposed to presentation. Its message is safe for the user.
+abstract class AppException implements Exception {
+  const AppException(this.message);
   final String message;
+  @override
+  String toString() => message;
+}
 
-  factory NetworkException.fromDio(DioException error) {
+class ServerException extends AppException {
+  const ServerException(super.message, {this.statusCode});
+  final int? statusCode;
+}
+
+class CacheException extends AppException {
+  const CacheException(super.message);
+}
+
+/// Connectivity and timeout failures, distinct from server responses.
+class NetworkException extends AppException {
+  const NetworkException(super.message);
+
+  static AppException fromDio(DioException error) {
     switch (error.type) {
       case DioExceptionType.connectionTimeout:
       case DioExceptionType.sendTimeout:
@@ -17,12 +33,12 @@ class NetworkException implements Exception {
       case DioExceptionType.badResponse:
         final code = error.response?.statusCode;
         if (code == 401 || code == 403) {
-          return const NetworkException('Votre session a expiré. Veuillez vous reconnecter.');
+          return ServerException('Votre session a expiré. Veuillez vous reconnecter.', statusCode: code);
         }
         if (code != null && code >= 500) {
-          return const NetworkException('Le service est indisponible. Réessayez plus tard.');
+          return ServerException('Le service est indisponible. Réessayez plus tard.', statusCode: code);
         }
-        return const NetworkException('La demande est invalide ou refusée.');
+        return ServerException('La demande est invalide ou refusée.', statusCode: code);
       case DioExceptionType.cancel:
         return const NetworkException('La requête a été annulée.');
       case DioExceptionType.badCertificate:

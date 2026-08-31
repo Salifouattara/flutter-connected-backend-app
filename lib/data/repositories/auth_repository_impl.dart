@@ -10,7 +10,7 @@ class AuthRepositoryImpl implements AuthRepository {
   final AppStorage _storage;
   @override bool get isAuthenticated => _storage.token != null;
   @override Future<Session> login(String username, String password) async {
-    try { final session = await _remote.login(username, password); await _storage.saveToken(session.token); await _storage.saveProfile({'id': session.user.id, 'firstName': session.user.firstName}); return session; }
+    try { final session = await _remote.login(username, password); await _storage.saveTokens(accessToken: session.token, refreshToken: session.refreshToken); await _storage.saveProfile({'id': session.user.id, 'firstName': session.user.firstName}); return session; }
     on DioException catch (e) { throw NetworkException.fromDio(e); }
   }
   @override Future<void> register(String firstName, String email, String password) async { try { await _remote.register(firstName, email, password); } on DioException catch (e) { throw NetworkException.fromDio(e); } }

@@ -1,4 +1,5 @@
 import 'package:flutter/foundation.dart';
+import '../../core/network/network_exception.dart';
 import '../../domain/entities/user.dart';
 import '../../domain/repositories/user_repository.dart';
 
@@ -18,8 +19,10 @@ class UsersController extends ChangeNotifier {
       final result = await _repository.getUsers();
       users = result.data;
       offline = result.isFromCache;
-    } catch (e) {
-      error = e.toString().replaceFirst('NetworkException: ', '');
+    } on AppException catch (e) {
+      error = e.message;
+    } catch (_) {
+      error = 'Une erreur inattendue est survenue.';
     } finally {
       loading = false;
       notifyListeners();
