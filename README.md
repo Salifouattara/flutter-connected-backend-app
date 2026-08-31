@@ -8,7 +8,7 @@ Application Flutter pensée pour un contexte de certification : authentification
 
 Le projet isole les responsabilités pour que l'interface reste indépendante de la source des données :
 
-- `lib/core` contient Dio, l'intercepteur JWT/refresh token, Hive et les exceptions applicatives typées (`NetworkException`, `ServerException`, `CacheException`).
+- `lib/core` contient Dio, l'intercepteur JWT/refresh token, Hive, le point de composition `AppDependencies` et les exceptions applicatives typées (`NetworkException`, `ServerException`, `CacheException`).
 - `lib/domain` définit les entités métier et les contrats de repositories, sans dépendre de Flutter ou Dio.
 - `lib/data` regroupe les DTO/modèles, les sources distantes/locales et les implémentations des repositories.
 - `lib/presentation` contient les contrôleurs `ChangeNotifier` et les écrans Login/Register, tableau de bord et profil.

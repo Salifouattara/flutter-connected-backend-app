@@ -3,15 +3,16 @@ import 'package:hive_flutter/hive_flutter.dart';
 /// Single local persistence boundary. Maps avoid generated Hive adapters here.
 class AppStorage {
   AppStorage(this._box);
-  final Box<dynamic> _box;
+  /// Object? keeps Hive flexible while preventing `dynamic` from leaking out.
+  final Box<Object?> _box;
 
   static const _tokenKey = 'auth_token';
   static const _refreshTokenKey = 'refresh_token';
   static const _profileKey = 'profile';
   static const _usersKey = 'cached_users';
 
-  String? get token => _box.get(_tokenKey) as String?;
-  String? get refreshToken => _box.get(_refreshTokenKey) as String?;
+  String? get token => _readString(_tokenKey);
+  String? get refreshToken => _readString(_refreshTokenKey);
   Future<void> saveToken(String token) => _box.put(_tokenKey, token);
   Future<void> saveRefreshToken(String token) => _box.put(_refreshTokenKey, token);
   Future<void> saveTokens({required String accessToken, String? refreshToken}) async {
@@ -38,4 +39,9 @@ class AppStorage {
     return raw.map((e) => Map<String, dynamic>.from(e as Map)).toList();
   }
   Future<void> saveUsers(List<Map<String, dynamic>> values) => _box.put(_usersKey, values);
+
+  String? _readString(String key) {
+    final value = _box.get(key);
+    return value is String ? value : null;
+  }
 }

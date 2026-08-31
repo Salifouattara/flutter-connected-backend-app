@@ -1,4 +1,5 @@
 import 'package:dio/dio.dart';
+import 'api_config.dart';
 import '../storage/app_storage.dart';
 
 class AuthInterceptor extends Interceptor {
@@ -10,8 +11,9 @@ class AuthInterceptor extends Interceptor {
   @override
   void onRequest(RequestOptions options, RequestInterceptorHandler handler) {
     // Only endpoints explicitly marked protected receive the JWT.
-    if (options.extra['authenticated'] == true && _storage.token != null) {
-      options.headers['Authorization'] = 'Bearer ${_storage.token}';
+    final accessToken = _storage.token;
+    if (options.extra['authenticated'] == true && accessToken != null && accessToken.isNotEmpty) {
+      options.headers['Authorization'] = 'Bearer $accessToken';
     }
     handler.next(options);
   }
@@ -20,10 +22,12 @@ class AuthInterceptor extends Interceptor {
   Future<void> onError(DioException err, ErrorInterceptorHandler handler) async {
     final options = err.requestOptions;
     final isUnauthorized = err.response?.statusCode == 401;
+    final refreshToken = _storage.refreshToken;
     final canRetry = options.extra['authenticated'] == true &&
         options.extra['retriedAfterRefresh'] != true &&
         options.path != '/auth/refresh' &&
-        _storage.refreshToken != null;
+        refreshToken != null &&
+        refreshToken.isNotEmpty;
 
     if (!isUnauthorized || !canRetry) return handler.next(err);
 
@@ -42,9 +46,13 @@ class AuthInterceptor extends Interceptor {
   }
 
   Future<void> _refreshAccessToken() async {
+    final refreshToken = _storage.refreshToken;
+    if (refreshToken == null || refreshToken.isEmpty) {
+      throw StateError('Refresh token absent');
+    }
     final response = await _dio.post<Map<String, dynamic>>('/auth/refresh', data: {
-      'refreshToken': _storage.refreshToken,
-      'expiresInMins': 60,
+      'refreshToken': refreshToken,
+      'expiresInMins': ApiConfig.refreshTokenLifetimeMinutes,
     });
     final data = response.data;
     final accessToken = data?['accessToken'] as String?;
